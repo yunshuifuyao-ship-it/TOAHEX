@@ -787,6 +787,11 @@ namespace TOAHEX
         private void btnAllCookingMax_Click(object sender, EventArgs e)
         {
             if (_saveData == null || _saveData.Type != SaveType.ToaXxx) return;
+
+            uint cookingFlags = _saveData.ReadCookingFlags();
+            cookingFlags |= 0x1FFFFFEu;
+            _saveData.WriteCookingFlags(cookingFlags);
+
             for (int c = 1; c <= 7; c++)
             {
                 for (int r = 0; r < 20; r++)
@@ -794,6 +799,9 @@ namespace TOAHEX
                     _saveData.WriteCookingMastery(c, r, 60);
                 }
             }
+
+            LoadCookingData();
+
             MessageBox.Show(LangText("所有角色料理已满级！", "全キャラクターの料理をマスターしました！"), LangText("完成", "完了"), MessageBoxButtons.OK, MessageBoxIcon.Information);
         }
 
@@ -1173,6 +1181,16 @@ namespace TOAHEX
                         string prefix = LangText("快捷", "ショートカット");
                         string empty = LangText("(空)", "(空)");
                         lblArte[slot].Text = string.Format("{0}{1}: {2}", prefix, slot + 1, _arteIds[slot] == 0 ? empty : arteName);
+
+                        if (_saveData != null)
+                        {
+                            int idx = cmbCharSelect.SelectedIndex + 1;
+                            if (idx >= 1 && idx <= 7)
+                            {
+                                int baseOff = _saveData.GetCharBaseOffset(idx);
+                                _saveData.WriteU16(baseOff + SaveOffsets.CHAR_ARTE_ARRAY + slot * 2, _arteIds[slot]);
+                            }
+                        }
                     }
                 }
             }
